@@ -49,7 +49,6 @@ def get_head_angle(landmarks):
     angle = np.degrees(np.arctan2(diff[0], diff[1]))
     return abs(angle)
 
-# --- Global flags ---
 alarm_on    = False
 alert_shown = False
 
@@ -93,7 +92,6 @@ def show_fullscreen_alert(reason):
         root.mainloop()
     threading.Thread(target=_show, daemon=True).start()
 
-# --- Productivity ---
 session_start    = datetime.now()
 total_focus_time = 0
 total_drowsy     = 0
@@ -139,7 +137,7 @@ def draw_dashboard(frame, ear, mar, head_angle, focus,
     put(f"Distractions: {distraction_count}", 375)
     put("F=fullscreen  Q=quit", h-15, (120,120,120), 0.45)
 
-# --- Main ---
+
 cap             = cv2.VideoCapture(0)
 eye_closed_since= None
 head_drop_since = None
@@ -166,15 +164,14 @@ while True:
         mar        = get_mar(lms)
         head_angle = get_head_angle(lms)
         focus      = get_focus_level(ear, mar, head_angle)
-
-        # Yawn tracking
+        
         if mar > YAWN_THRESHOLD and not yawn_active:
             yawn_count += 1
             yawn_active = True
         elif mar <= YAWN_THRESHOLD:
             yawn_active = False
 
-        # Eye closed detection
+    
         if ear < EAR_THRESHOLD:
             if eye_closed_since is None:
                 eye_closed_since = time.time()
@@ -190,7 +187,7 @@ while True:
             if not alert_shown:
                 stop_alarm()
 
-        # Head drop detection
+        
         if head_angle > HEAD_DROP_ANGLE:
             if head_drop_since is None:
                 head_drop_since = time.time()
@@ -202,7 +199,7 @@ while True:
         else:
             head_drop_since = None
 
-        # Focus tracking
+        
         if focus == "Focused":
             if not was_focused:
                 last_focus_start = time.time()
@@ -233,7 +230,7 @@ while True:
             cv2.setWindowProperty("Sleep Alarm", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
             fullscreen = True
 
-# --- End ---
+
 stop_alarm()
 cap.release()
 cv2.destroyAllWindows()
