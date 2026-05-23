@@ -101,8 +101,8 @@ last_focus_start = time.time()
 was_focused      = True
 
 def get_focus_level(ear, mar, head_angle):
-    if ear < EAR_THRESHOLD:   return "Drowsy"
-    if mar > YAWN_THRESHOLD:  return "Yawning"
+    if ear < EAR_THRESHOLD:          return "Drowsy"
+    if mar > YAWN_THRESHOLD:         return "Yawning"
     if head_angle > HEAD_DROP_ANGLE: return "Head Dropping"
     return "Focused"
 
@@ -137,12 +137,12 @@ def draw_dashboard(frame, ear, mar, head_angle, focus,
     put(f"Distractions: {distraction_count}", 375)
     put("F=fullscreen  Q=quit", h-15, (120,120,120), 0.45)
 
-
-cap             = cv2.VideoCapture(0)
-eye_closed_since= None
-head_drop_since = None
-yawn_active     = False
-fullscreen      = False
+# --- Main ---
+cap              = cv2.VideoCapture(0)
+eye_closed_since = None
+head_drop_since  = None
+yawn_active      = False
+fullscreen       = False
 
 print("Sleep Alarm running... Press Q to quit, F for fullscreen.")
 
@@ -164,37 +164,33 @@ while True:
         mar        = get_mar(lms)
         head_angle = get_head_angle(lms)
         focus      = get_focus_level(ear, mar, head_angle)
-        
+
+        # Yawn tracking
         if mar > YAWN_THRESHOLD and not yawn_active:
             yawn_count += 1
             yawn_active = True
         elif mar <= YAWN_THRESHOLD:
             yawn_active = False
 
-    
-   if ear < EAR_THRESHOLD:
-    if eye_closed_since is None:
-        eye_closed_since = time.time()
-    elapsed_closed = time.time() - eye_closed_since
-    if elapsed_closed >= ALARM_DELAY and not alert_shown:
-        alert_shown = True
-        total_drowsy += 1
-        distraction_count += 1
-        start_alarm()
-        show_fullscreen_alert("Eyes closed while studying!")
-else:
-    
-    if eye_closed_since is not None:
-        blink_duration = time.time() - eye_closed_since
-        if blink_duration < 0.5: 
-            eye_closed_since = None
+        # Eye closed detection
+        if ear < EAR_THRESHOLD:
+            if eye_closed_since is None:
+                eye_closed_since = time.time()
+            elapsed_closed = time.time() - eye_closed_since
+            if elapsed_closed >= ALARM_DELAY and not alert_shown:
+                alert_shown = True
+                total_drowsy += 1
+                distraction_count += 1
+                start_alarm()
+                show_fullscreen_alert("Eyes closed while studying!")
         else:
             eye_closed_since = None
-    if not alert_shown:
-        stop_alarm()
+            elapsed_closed   = 0.0
+            if not alert_shown:
+                stop_alarm()
 
-        
-        if head_angle > HEAD_DROP_ANGLE:
+        # Head drop — sirf tab jab aankhein bhi band hon
+        if head_angle > HEAD_DROP_ANGLE and ear < EAR_THRESHOLD:
             if head_drop_since is None:
                 head_drop_since = time.time()
             elif time.time() - head_drop_since > 2.0 and not alert_shown:
@@ -205,7 +201,7 @@ else:
         else:
             head_drop_since = None
 
-        
+        # Focus tracking
         if focus == "Focused":
             if not was_focused:
                 last_focus_start = time.time()
@@ -235,7 +231,6 @@ else:
             cv2.namedWindow("Sleep Alarm", cv2.WND_PROP_FULLSCREEN)
             cv2.setWindowProperty("Sleep Alarm", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
             fullscreen = True
-
 
 stop_alarm()
 cap.release()
