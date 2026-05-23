@@ -8,7 +8,7 @@ import tkinter as tk
 from datetime import datetime
 
 EAR_THRESHOLD   = 0.26
-ALARM_DELAY     = 2.5
+ALARM_DELAY     = 3.5
 YAWN_THRESHOLD  = 0.6
 HEAD_DROP_ANGLE = 20
 BEEP_FREQ       = 1000
@@ -172,20 +172,26 @@ while True:
             yawn_active = False
 
     
-        if ear < EAR_THRESHOLD:
-            if eye_closed_since is None:
-                eye_closed_since = time.time()
-            elapsed_closed = time.time() - eye_closed_since
-            if elapsed_closed >= ALARM_DELAY and not alert_shown:
-                alert_shown = True
-                total_drowsy += 1
-                distraction_count += 1
-                start_alarm()
-                show_fullscreen_alert("Eyes closed while studying!")
+   if ear < EAR_THRESHOLD:
+    if eye_closed_since is None:
+        eye_closed_since = time.time()
+    elapsed_closed = time.time() - eye_closed_since
+    if elapsed_closed >= ALARM_DELAY and not alert_shown:
+        alert_shown = True
+        total_drowsy += 1
+        distraction_count += 1
+        start_alarm()
+        show_fullscreen_alert("Eyes closed while studying!")
+else:
+    
+    if eye_closed_since is not None:
+        blink_duration = time.time() - eye_closed_since
+        if blink_duration < 0.5: 
+            eye_closed_since = None
         else:
             eye_closed_since = None
-            if not alert_shown:
-                stop_alarm()
+    if not alert_shown:
+        stop_alarm()
 
         
         if head_angle > HEAD_DROP_ANGLE:
